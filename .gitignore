@@ -45,7 +45,6 @@ out/
 .vscode/
 
 ### application ###
-application.yml
 application-secret.yml
 /gradle/wrapper/gradle-wrapper.jar
 /gradle/wrapper/gradle-wrapper.properties

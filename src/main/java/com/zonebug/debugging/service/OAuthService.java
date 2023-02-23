@@ -1,0 +1,193 @@
+package com.zonebug.debugging.service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zonebug.debugging.config.jwt.TokenProvider;
+import com.zonebug.debugging.domain.user.User;
+import com.zonebug.debugging.domain.user.UserRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class OAuthService {
+
+    private static final String MISMATCH_VERIFICATION_CODE = "500";
+    private final UserRepository userRepository;
+    private final CustomUserDetailsService customUserDetailsService;
+    private final TokenProvider tokenProvider;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final PasswordEncoder passwordEncoder;
+
+
+
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+    private String KAKAO_CLIENT_ID;
+
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
+    private String KAKAO_REDIRECT_URI;
+
+    @Value("${jwt.secret}")
+    private String JWT_SECRET;
+
+    public User signup(String code) {
+
+        // "인가 코드"로 "accessToken" 요청
+        String kakaoAccessToken = getAccessToken(code);
+
+        // 토큰으로 카카오 API 호출 (이메일 정보 가져오기)
+        String email = getUserInfo(kakaoAccessToken);
+
+        // DB정보 확인 -> 없으면 DB에 저장
+        User user = registerUserIfNeed(email);
+
+        // JWT 토큰 리턴
+        String jwtToken = usersAuthorizationInput(user);
+
+        // 회원여부 닉네임으로 확인
+        Boolean isMember = checkIsMember(user);
+
+        // 로그인 처리
+        Authentication authentication = getAuthentication(jwtToken);
+
+
+        return userRepository.save(user);
+    }
+
+
+    private String getAccessToken(String code) {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("grant_type", "authorization_code");
+        body.add("client_id", KAKAO_CLIENT_ID);
+        body.add("redirect_uri", KAKAO_REDIRECT_URI);
+        body.add("code", code);
+
+        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(body, headers);
+        RestTemplate rt = new RestTemplate();
+
+        ResponseEntity<String> response = rt.exchange(
+                "https://kauth.kakao.com/oauth/token",
+                HttpMethod.POST,
+                kakaoTokenRequest,
+                String.class
+        );
+
+        // HTTP 응답 (JSON) -> 액세스 토큰 파싱
+        String responseBody = response.getBody();
+        try{
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+            return jsonNode.get("access_token").asText();
+        } catch (Exception e) {
+            System.out.println("in exception");
+            return e.toString();
+        }
+    }
+
+    private String getUserInfo(String accessToken) {
+        // HTTP Header 생성
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", "Bearer " + accessToken);
+        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+
+        // HTTP 요청 보내기 - Post 방식
+        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(headers);
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response = rt.exchange(
+                "https://kapi.kakao.com/v2/user/me",
+                HttpMethod.POST,
+                kakaoTokenRequest,
+                String.class
+        );
+
+        // responseBody 정보 꺼내기
+        String responseBody = response.getBody();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+            String email = jsonNode.get("kakao_account").get("email").asText();
+            return email;
+        } catch (Exception e) {
+            return e.toString();
+        }
+    }
+
+    // DB정보 확인 -> 없으면 DB에 저장
+    private User registerUserIfNeed(String email) {
+        // DB에 중복된 이메일 있는지 확인
+        Optional<User> user = userRepository.findByEmail(email);
+
+        if (user.isEmpty()) {
+            // DB에 정보 등록
+            User newUser = User.builder()
+                    .email(email)
+                    .password(passwordEncoder.encode("kakao"))
+                    .type("kakao")
+                    .build();
+            userRepository.save(newUser);
+        }
+
+        return userRepository.findByEmail(email).get();
+    }
+
+    private String usersAuthorizationInput(User user) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
+
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        System.out.println("2");
+        System.out.println(authentication.getDetails());
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String accessToken = tokenProvider.createAccessToken(authentication);
+        String refreshToken = tokenProvider.createRefreshToken(authentication);
+
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
+        return accessToken;
+    }
+
+    private Boolean checkIsMember(User user) {
+        return user.getNickname() != null;
+    }
+
+    private Authentication getAuthentication(String jwtToken) {
+        System.out.println("~~~~~~~");
+        User user = userRepository.findById(tokenProvider.getTokenUserId(jwtToken))
+                .orElseThrow();
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        return authentication;
+    }
+}

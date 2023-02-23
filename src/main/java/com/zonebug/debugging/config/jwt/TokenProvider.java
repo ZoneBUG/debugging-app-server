@@ -27,14 +27,17 @@ public class TokenProvider implements InitializingBean {
 
     private static final String AUTHORITIES_KEY = "auth";
     private final String secret;
-    private final long tokenValidityInMilliseconds;
+    private final long accessTokenValidityInMilliseconds;
+    private final long refreshTokenValidityInMilliseconds;
     private Key key;
 
     public TokenProvider(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.token-validity-in-seconds}") long tokenValidityInMilliseconds) {
+            @Value("${jwt.accesstoken-validity-in-seconds}") long accessTokenValidityInMilliseconds,
+            @Value("${jwt.refreshtoken-validity-in-seconds}") long refreshTokenValidityInMilliseconds) {
         this.secret = secret;
-        this.tokenValidityInMilliseconds = tokenValidityInMilliseconds * 1000;
+        this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds * 1000;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
     }
 
 
@@ -45,13 +48,14 @@ public class TokenProvider implements InitializingBean {
     }
 
 
-    public String createToken(Authentication authentication) {
+    public String createAccessToken(Authentication authentication) {
+        System.out.println("createAT");
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
-        Date validity = new Date(now + this.tokenValidityInMilliseconds);
+        Date validity = new Date(now + this.accessTokenValidityInMilliseconds);
 
         return Jwts.builder()
                 .setSubject(authentication.getName())
@@ -61,6 +65,26 @@ public class TokenProvider implements InitializingBean {
                 .compact();
     }
 
+    public String createRefreshToken(Authentication authentication) {
+        String authorities = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        long now = (new Date()).getTime();
+        Date validity = new Date(now + this.refreshTokenValidityInMilliseconds);
+
+        return Jwts.builder()
+                .setSubject(authentication.getName())
+                .claim(AUTHORITIES_KEY, authorities)
+                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(validity)
+                .compact();
+    }
+
+    public Long getTokenUserId(String token) {
+        System.out.println("!!!");
+        return (Long) Jwts.parser().setSigningKey(key).parseClaimsJws(token).getBody().get("userId");
+    }
 
     public Authentication getAuthentication(String token) {
         Claims claims = Jwts
@@ -69,14 +93,14 @@ public class TokenProvider implements InitializingBean {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-
+        System.out.println("96");
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-
+        System.out.println("101");
         User principal = new User(claims.getSubject(), "", authorities);
-
+        System.out.println("103");
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 

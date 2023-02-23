@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zonebug.debugging.config.jwt.TokenProvider;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
+import com.zonebug.debugging.dto.KakaoResponseDTO;
+import com.zonebug.debugging.dto.LoginDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,9 +36,7 @@ public class OAuthService {
     private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenProvider tokenProvider;
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     private final PasswordEncoder passwordEncoder;
-
 
 
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
@@ -45,10 +45,8 @@ public class OAuthService {
     @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
     private String KAKAO_REDIRECT_URI;
 
-    @Value("${jwt.secret}")
-    private String JWT_SECRET;
 
-    public User signup(String code) {
+    public KakaoResponseDTO signUp(String code) {
 
         // "인가 코드"로 "accessToken" 요청
         String kakaoAccessToken = getAccessToken(code);
@@ -59,19 +57,18 @@ public class OAuthService {
         // DB정보 확인 -> 없으면 DB에 저장
         User user = registerUserIfNeed(email);
 
-        // JWT 토큰 리턴
+        // JWT 토큰 리턴 & 로그인 처리
         String jwtToken = usersAuthorizationInput(user);
 
         // 회원여부 닉네임으로 확인
         Boolean isMember = checkIsMember(user);
 
-        // 로그인 처리
-        Authentication authentication = getAuthentication(jwtToken);
-
-
-        return userRepository.save(user);
+        return new KakaoResponseDTO(user.getId(), jwtToken, user.getRefreshToken(), isMember);
     }
 
+//    public KakaoResponseDTO signIn(){
+//        return new LoginDto();
+//    }
 
     private String getAccessToken(String code) {
 
@@ -154,12 +151,13 @@ public class OAuthService {
     }
 
     private String usersAuthorizationInput(User user) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
 
-        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-        System.out.println("2");
-        System.out.println(authentication.getDetails());
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -173,21 +171,5 @@ public class OAuthService {
 
     private Boolean checkIsMember(User user) {
         return user.getNickname() != null;
-    }
-
-    private Authentication getAuthentication(String jwtToken) {
-        System.out.println("~~~~~~~");
-        User user = userRepository.findById(tokenProvider.getTokenUserId(jwtToken))
-                .orElseThrow();
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getEmail());
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-                userDetails,
-                "",
-                userDetails.getAuthorities()
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        return authentication;
     }
 }

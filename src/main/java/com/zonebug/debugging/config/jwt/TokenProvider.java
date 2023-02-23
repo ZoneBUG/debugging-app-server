@@ -49,7 +49,6 @@ public class TokenProvider implements InitializingBean {
 
 
     public String createAccessToken(Authentication authentication) {
-        System.out.println("createAT");
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));

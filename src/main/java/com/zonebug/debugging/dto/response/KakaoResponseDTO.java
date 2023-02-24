@@ -1,4 +1,4 @@
-package com.zonebug.debugging.dto;
+package com.zonebug.debugging.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;

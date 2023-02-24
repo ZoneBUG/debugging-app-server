@@ -5,8 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zonebug.debugging.config.jwt.TokenProvider;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
-import com.zonebug.debugging.dto.KakaoResponseDTO;
-import com.zonebug.debugging.dto.LoginDto;
+import com.zonebug.debugging.dto.response.KakaoResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +14,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +30,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OAuthService {
 
-    private static final String MISMATCH_VERIFICATION_CODE = "500";
     private final UserRepository userRepository;
     private final CustomUserDetailsService customUserDetailsService;
     private final TokenProvider tokenProvider;
@@ -125,8 +122,7 @@ public class OAuthService {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-            String email = jsonNode.get("kakao_account").get("email").asText();
-            return email;
+            return jsonNode.get("kakao_account").get("email").asText();
         } catch (Exception e) {
             return e.toString();
         }

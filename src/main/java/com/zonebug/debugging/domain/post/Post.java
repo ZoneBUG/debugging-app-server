@@ -1,4 +1,4 @@
-package com.zonebug.debugging.domain.community;
+package com.zonebug.debugging.domain.post;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -42,6 +42,9 @@ public class Post {
 
     @Column(name = "contents", length = 500)
     private String contents;
+
+    @Column(name = "hits")
+    private Long hits;
 
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss", timezone = "Asia/Seoul")

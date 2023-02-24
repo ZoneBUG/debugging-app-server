@@ -1,4 +1,4 @@
-package com.zonebug.debugging.domain.community;
+package com.zonebug.debugging.domain.blacklist;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;

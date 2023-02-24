@@ -1,8 +1,9 @@
-package com.zonebug.debugging.domain.community;
+package com.zonebug.debugging.domain.comment;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.zonebug.debugging.domain.post.Post;
 import com.zonebug.debugging.domain.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,7 +42,7 @@ public class Comment {
     @ManyToOne(fetch = FetchType.EAGER)  // ?
     @JsonBackReference
     @JoinColumn(name="parent_id", nullable = false)
-    private Comment comment;
+    private Comment parentComment;
 
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss", timezone = "Asia/Seoul")

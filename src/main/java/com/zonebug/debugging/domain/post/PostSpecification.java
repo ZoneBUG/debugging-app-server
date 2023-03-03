@@ -16,4 +16,12 @@ public class PostSpecification {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.between(root.get("createdAt"), new Date(date.getTime()+(1000*60*60*24*-1)), date);
     }
+
+    public static Specification<Post> likeTitle(String keyword) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("title"), keyword);
+    }
+
+    public static Specification<Post> likeContents(String keyword) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.like(root.get("contents"), keyword);
+    }
 }

@@ -10,7 +10,7 @@ import com.zonebug.debugging.domain.user.UserRepository;
 import com.zonebug.debugging.dto.*;
 import com.zonebug.debugging.dto.response.MainPostResponseDTO;
 import com.zonebug.debugging.dto.response.PostResponseDTO;
-import com.zonebug.debugging.dto.response.TagPostResponseDTO;
+import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -72,7 +72,7 @@ public class CommunityService {
         return new MainPostResponseDTO(issueListDTO, askListDTO, shareListDTO);
     }
 
-    public TagPostResponseDTO getTagPosts(
+    public SimplePostResponseDTO getTagPosts(
             UserDetails authUser, String tag, Integer pageNum
     ) {
         User user = userRepository.findByEmail(authUser.getUsername())
@@ -84,16 +84,16 @@ public class CommunityService {
 
         Page<Post> findPosts = postRepository.findAll(spec, pageRequest);
 
-        List<TagPostDTO> list = new ArrayList<>();
+        List<SimplePostDTO> list = new ArrayList<>();
         for (Post post : findPosts) {
             Long postId = post.getId();
             String nickname = post.getUser().getNickname();
             String title = post.getTitle();
             Date createdAt = post.getCreatedAt();
-            TagPostDTO tagPostDTO = new TagPostDTO(postId, nickname, title, createdAt);
-            list.add(tagPostDTO);
+            SimplePostDTO SimplePostDTO = new SimplePostDTO(postId, nickname, title, createdAt);
+            list.add(SimplePostDTO);
         }
-        return new TagPostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
+        return new SimplePostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
     }
 
     public PostResponseDTO readPost(UserDetails authUser, Long postId) {
@@ -122,5 +122,28 @@ public class CommunityService {
             list.add(commentDTO);
         }
         return new PostResponseDTO(postDTO, list);
+    }
+    
+    public SimplePostResponseDTO searchPosts(UserDetails authUser, String keyword, Integer pageNum) {
+        User user = userRepository.findByEmail(authUser.getUsername())
+                .orElseThrow();
+
+        PageRequest pageRequest = PageRequest.of(pageNum, 10, Sort.by("createdAt").descending());
+        Specification<Post> spec = (root, query, criteriaBuilder) -> null;
+        spec = spec.and(PostSpecification.likeTitle(keyword))
+                .or(PostSpecification.likeContents(keyword));
+
+        Page<Post> findPosts = postRepository.findAll(spec, pageRequest);
+
+        List<SimplePostDTO> list = new ArrayList<>();
+        for (Post post : findPosts) {
+            Long postId = post.getId();
+            String nickname = post.getUser().getNickname();
+            String title = post.getTitle();
+            Date createdAt = post.getCreatedAt();
+            SimplePostDTO SimplePostDTO = new SimplePostDTO(postId, nickname, title, createdAt);
+            list.add(SimplePostDTO);
+        }
+        return new SimplePostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
     }
 }

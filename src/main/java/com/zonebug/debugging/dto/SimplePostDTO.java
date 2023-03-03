@@ -9,7 +9,7 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TagPostDTO {
+public class SimplePostDTO {
 
     private Long postId;
 

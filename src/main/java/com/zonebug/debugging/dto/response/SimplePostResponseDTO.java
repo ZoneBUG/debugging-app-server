@@ -1,6 +1,6 @@
 package com.zonebug.debugging.dto.response;
 
-import com.zonebug.debugging.dto.TagPostDTO;
+import com.zonebug.debugging.dto.SimplePostDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,10 +12,10 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class TagPostResponseDTO {
+public class SimplePostResponseDTO {
 
 
-    private List<TagPostDTO> postList;
+    private List<SimplePostDTO> postList;
 
     private Integer totalPages;
 

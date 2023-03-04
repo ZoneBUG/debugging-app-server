@@ -1,6 +1,7 @@
 package com.zonebug.debugging.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.zonebug.debugging.dto.AddInfoDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -39,6 +40,11 @@ public class User {
     @Builder
     public User(){
         this.email = getEmail();
+    }
+
+    public void addInfo(AddInfoDTO addInfoDTO) {
+        this.nickname = addInfoDTO.getNickname();
+        this.period = addInfoDTO.getPeriod();
     }
 
 }

@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zonebug.debugging.config.jwt.TokenProvider;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
+import com.zonebug.debugging.dto.AddInfoDTO;
+import com.zonebug.debugging.dto.UserDto;
 import com.zonebug.debugging.dto.response.OAuthResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -221,5 +224,13 @@ public class OAuthService {
 
     private Boolean checkIsMember(User user) {
         return user.getNickname() != null;
+    }
+
+    @Transactional
+    public User addInfo(UserDetails authUser, AddInfoDTO addInfoDTO) {
+        User user = userRepository.findByEmail(authUser.getUsername()).orElseThrow();
+        user.addInfo(addInfoDTO);
+
+        return userRepository.save(user);
     }
 }

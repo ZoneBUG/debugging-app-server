@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zonebug.debugging.config.jwt.TokenProvider;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
-import com.zonebug.debugging.dto.response.KakaoResponseDTO;
+import com.zonebug.debugging.dto.response.OAuthResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +23,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
@@ -35,15 +36,40 @@ public class OAuthService {
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String KAKAO_CLIENT_ID;
 
     @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
     private String KAKAO_REDIRECT_URI;
 
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String NAVER_CLIENT_ID;
 
-    public KakaoResponseDTO signUp(String code) {
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String NAVER_CLIENT_SECRET;
+
+    @Value("${spring.security.oauth2.client.registration.naver.redirect-uri")
+    private String NAVER_REDIRECT_URI;
+
+    @Value("${spring.security.oauth2.client.provider.naver.user-info-uri")
+    private String NAVER_USER_INFO_URI;
+
+
+    private String TYPE;
+    private String CLIENT_ID;
+    private String REDIRECT_URI;
+
+
+    public OAuthResponseDTO signUp(String code, String type) {
+        TYPE = type;
+
+        if(type == "kakao") {
+            CLIENT_ID = KAKAO_CLIENT_ID;
+            REDIRECT_URI = KAKAO_REDIRECT_URI;
+        } else {
+            CLIENT_ID = NAVER_CLIENT_ID;
+            REDIRECT_URI = NAVER_REDIRECT_URI;
+        }
 
         // "인가 코드"로 "accessToken" 요청
         String kakaoAccessToken = getAccessToken(code);
@@ -60,12 +86,9 @@ public class OAuthService {
         // 회원여부 닉네임으로 확인
         Boolean isMember = checkIsMember(user);
 
-        return new KakaoResponseDTO(user.getId(), jwtToken, user.getRefreshToken(), isMember);
+        return new OAuthResponseDTO(user.getId(), jwtToken, user.getRefreshToken(), isMember);
     }
 
-//    public KakaoResponseDTO signIn(){
-//        return new LoginDto();
-//    }
 
     private String getAccessToken(String code) {
 
@@ -74,25 +97,38 @@ public class OAuthService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("grant_type", "authorization_code");
-        body.add("client_id", KAKAO_CLIENT_ID);
-        body.add("redirect_uri", KAKAO_REDIRECT_URI);
+        body.add("client_id", CLIENT_ID);
+        if(TYPE == "naver") body.add("client_secret", NAVER_CLIENT_SECRET);
+        body.add("redirect_uri", REDIRECT_URI);
         body.add("code", code);
 
-        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(body, headers);
-        RestTemplate rt = new RestTemplate();
 
-        ResponseEntity<String> response = rt.exchange(
-                "https://kauth.kakao.com/oauth/token",
-                HttpMethod.POST,
-                kakaoTokenRequest,
-                String.class
-        );
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
+        RestTemplate rt = new RestTemplate();
+        ResponseEntity<String> response;
+
+        if(TYPE == "kakao") {
+            response = rt.exchange(
+                    "https://kauth.kakao.com/oauth/token",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+        } else {
+            response = rt.exchange(
+                    "https://nid.naver.com/oauth2.0/token",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+        }
 
         // HTTP 응답 (JSON) -> 액세스 토큰 파싱
         String responseBody = response.getBody();
         try{
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody);
+            System.out.println(jsonNode);
             return jsonNode.get("access_token").asText();
         } catch (Exception e) {
             System.out.println("in exception");
@@ -107,14 +143,25 @@ public class OAuthService {
         headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
         // HTTP 요청 보내기 - Post 방식
-        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(headers);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(headers);
         RestTemplate rt = new RestTemplate();
-        ResponseEntity<String> response = rt.exchange(
-                "https://kapi.kakao.com/v2/user/me",
-                HttpMethod.POST,
-                kakaoTokenRequest,
-                String.class
-        );
+        ResponseEntity<String> response;
+
+        if(TYPE == "kakao") {
+            response = rt.exchange(
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+        } else {
+            response = rt.exchange(
+                    "https://openapi.naver.com/v1/nid/me",
+                    HttpMethod.POST,
+                    request,
+                    String.class
+            );
+        }
 
         // responseBody 정보 꺼내기
         String responseBody = response.getBody();
@@ -122,7 +169,14 @@ public class OAuthService {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody);
 
-            return jsonNode.get("kakao_account").get("email").asText();
+            if(TYPE == "kakao") {
+                return jsonNode.get("kakao_account").get("email").asText();
+            } else {
+                System.out.println(jsonNode.get("response"));
+                return jsonNode.get("response").get("email").asText();
+            }
+
+
         } catch (Exception e) {
             return e.toString();
         }
@@ -137,8 +191,8 @@ public class OAuthService {
             // DB에 정보 등록
             User newUser = User.builder()
                     .email(email)
-                    .password(passwordEncoder.encode("kakao"))
-                    .type("kakao")
+                    .password(passwordEncoder.encode(TYPE))
+                    .type(TYPE)
                     .build();
             userRepository.save(newUser);
         }

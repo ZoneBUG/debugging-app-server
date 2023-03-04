@@ -1,6 +1,6 @@
 package com.zonebug.debugging.controller;
 
-import com.zonebug.debugging.dto.response.KakaoResponseDTO;
+import com.zonebug.debugging.dto.response.OAuthResponseDTO;
 import com.zonebug.debugging.service.OAuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +17,13 @@ public class OAuthController {
     }
 
     @GetMapping("/kakao")
-    public ResponseEntity<KakaoResponseDTO> signUp(@Valid @RequestParam(name = "code") String code) {
-        return ResponseEntity.ok(oauthService.signUp(code));
+    public ResponseEntity<OAuthResponseDTO> signUp(@Valid @RequestParam(name = "code") String code) {
+        return ResponseEntity.ok(oauthService.signUp(code, "kakao"));
+    }
+
+    @GetMapping("/naver")
+    public ResponseEntity<OAuthResponseDTO> signup(@Valid @RequestParam String code, @RequestParam String state) {
+        return ResponseEntity.ok(oauthService.signUp(code, "naver"));
     }
 
 //    @PostMapping("/")

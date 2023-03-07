@@ -17,12 +17,12 @@ public class OAuthController {
     }
 
     @GetMapping("/kakao")
-    public ResponseEntity<OAuthResponseDTO> signUp(@Valid @RequestParam(name = "code") String code) {
+    public ResponseEntity<OAuthResponseDTO> kakaoSignUp(@Valid @RequestParam(name = "code") String code) {
         return ResponseEntity.ok(oauthService.signUp(code, "kakao"));
     }
 
     @GetMapping("/naver")
-    public ResponseEntity<OAuthResponseDTO> signup(@Valid @RequestParam String code, @RequestParam String state) {
+    public ResponseEntity<OAuthResponseDTO> naverSignUp(@Valid @RequestParam(name = "code") String code) {
         return ResponseEntity.ok(oauthService.signUp(code, "naver"));
     }
 

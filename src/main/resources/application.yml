@@ -12,6 +12,10 @@ spring:
         registration:
           kakao:
             - secret
+          naver:
+            - secret
+          google:
+            - secret
   h2:
     console:
       enabled: true
@@ -24,6 +28,9 @@ spring:
         format_sql: true
 
 jwt:
+    - secret
+
+cloud:
     - secret
 
 logging:

@@ -9,6 +9,7 @@ import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
 import com.zonebug.debugging.dto.*;
 import com.zonebug.debugging.dto.response.MainPostResponseDTO;
+import com.zonebug.debugging.dto.response.PostIdResponseDTO;
 import com.zonebug.debugging.dto.response.PostResponseDTO;
 import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
 import lombok.RequiredArgsConstructor;
@@ -123,7 +124,7 @@ public class CommunityService {
         }
         return new PostResponseDTO(postDTO, list);
     }
-    
+
     public SimplePostResponseDTO searchPosts(UserDetails authUser, String keyword, Integer pageNum) {
         User user = userRepository.findByEmail(authUser.getUsername())
                 .orElseThrow();
@@ -145,5 +146,49 @@ public class CommunityService {
             list.add(SimplePostDTO);
         }
         return new SimplePostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
+    }
+
+    public PostIdResponseDTO writePost(UserDetails authUser, WritePostDTO writePost) {
+
+
+        User findUser = userRepository.findByEmail(authUser.getUsername())
+                .orElseThrow();
+
+        Post post = Post.builder()
+                .user(findUser)
+                .tag(writePost.getTag())
+                .title(writePost.getTitle())
+                .image(writePost.getImage())
+                .contents(writePost.getContents())
+                .build();
+
+        Post savedPost = postRepository.saveAndFlush(post);
+
+        return new PostIdResponseDTO(savedPost);
+    }
+
+    public PostIdResponseDTO updatePost(UserDetails authUser, Long postId, WritePostDTO writePost){
+
+
+        User findUser = userRepository.findByEmail(authUser.getUsername())
+                .orElseThrow();
+        Post findPost = postRepository.findByIdAndUserId(postId, findUser.getId())
+                .orElseThrow();
+
+        findPost.update(writePost);
+        postRepository.save(findPost);
+
+        return new PostIdResponseDTO(findPost);
+    }
+
+    public PostIdResponseDTO deletePost(UserDetails authUser, Long postId) {
+        User findUser = userRepository.findByEmail(authUser.getUsername())
+                .orElseThrow();
+        Post findPost = postRepository.findByIdAndUserId(postId, findUser.getId())
+                .orElseThrow();
+
+        postRepository.deleteById(findPost.getId());
+
+        return new PostIdResponseDTO(findPost);
     }
 }

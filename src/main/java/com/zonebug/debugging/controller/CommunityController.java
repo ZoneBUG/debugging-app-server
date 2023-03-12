@@ -1,6 +1,8 @@
 package com.zonebug.debugging.controller;
 
+import com.zonebug.debugging.dto.WritePostDTO;
 import com.zonebug.debugging.dto.response.MainPostResponseDTO;
+import com.zonebug.debugging.dto.response.PostIdResponseDTO;
 import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
 import com.zonebug.debugging.dto.response.PostResponseDTO;
 import com.zonebug.debugging.service.CommunityService;
@@ -24,6 +26,32 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.getMainPosts(authUser));
     }
 
+    @PostMapping("/post")
+    public ResponseEntity<PostIdResponseDTO> writePost(
+            @AuthenticationPrincipal UserDetails authUser,
+            @RequestBody WritePostDTO writePost) {
+        return ResponseEntity.ok(communityService.writePost(authUser, writePost));
+    }
+
+    @PutMapping("/post/{postId}")
+    @ResponseBody
+    public ResponseEntity<PostIdResponseDTO> updatePost(
+            @AuthenticationPrincipal UserDetails authUser,
+            @PathVariable Long postId,
+            @RequestBody WritePostDTO writePost
+    ) {
+        return ResponseEntity.ok(communityService.updatePost(authUser, postId, writePost));
+    }
+
+    @DeleteMapping("/post/{postId}")
+    @ResponseBody
+    public ResponseEntity<PostIdResponseDTO> deletePost(
+            @AuthenticationPrincipal UserDetails authUser,
+            @PathVariable Long postId
+    ) {
+        return ResponseEntity.ok(communityService.deletePost(authUser, postId));
+    }
+
     @GetMapping("/{tag}")
     public ResponseEntity<SimplePostResponseDTO> getSimplePosts(
             @PathVariable String tag,
@@ -34,8 +62,8 @@ public class CommunityController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponseDTO> readPost(
-            @PathVariable Long postId,
-            @AuthenticationPrincipal UserDetails authUser) {
+            @AuthenticationPrincipal UserDetails authUser,
+            @PathVariable Long postId) {
         return ResponseEntity.ok(communityService.readPost(authUser, postId));
     }
 

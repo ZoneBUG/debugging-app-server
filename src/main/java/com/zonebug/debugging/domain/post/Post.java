@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zonebug.debugging.domain.user.User;
+import com.zonebug.debugging.dto.WritePostDTO;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.util.Date;
 
@@ -16,6 +19,8 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE post SET deleted_at = CURRENT_TIMESTAMP where id = ?")
 public class Post {
 
 
@@ -59,11 +64,11 @@ public class Post {
     private Date deletedAt;
 
 
-//    public void update(AddPostRequestDTO addPostRequestDTO) {
-//        this.tag = addPostRequestDTO.getTag();
-//        this.title = addPostRequestDTO.getTitle();
-//        this.image = addPostRequestDTO.getImage();
-//        this.contents = addPostRequestDTO.getContents();
-//        this.updatedAt = new Date();
-//    }
+    public void update(WritePostDTO addPostDTO) {
+        this.tag = addPostDTO.getTag();
+        this.title = addPostDTO.getTitle();
+        this.image = addPostDTO.getImage();
+        this.contents = addPostDTO.getContents();
+        this.updatedAt = new Date();
+    }
 }

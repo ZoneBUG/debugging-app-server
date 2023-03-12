@@ -9,13 +9,14 @@ import lombok.*;
 @Getter @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     @JsonIgnore
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "email", length = 45, unique = true)
     private String email;
@@ -32,13 +33,5 @@ public class User {
 
     @Column(name = "type", length = 45)
     private String type;
-
-    @Column(name = "refresh_token")
-    private String refreshToken;
-
-    @Builder
-    public User(){
-        this.email = getEmail();
-    }
 
 }

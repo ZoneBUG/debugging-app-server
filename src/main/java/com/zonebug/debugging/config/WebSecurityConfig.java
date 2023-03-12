@@ -59,6 +59,8 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests((req) ->
                         req
                                 .requestMatchers("/user/authenticate", "/user/signup").permitAll()
+                                .requestMatchers("/oauth", "/oauth/kakao", "/oauth/callback/kakao", "/oauth/naver/**").permitAll()
+                                .requestMatchers("/source/url").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .apply(new JwtSecurityConfig(tokenProvider));

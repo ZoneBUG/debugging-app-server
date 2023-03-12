@@ -5,6 +5,17 @@ spring:
   profiles:
      include:
        - secret
+
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            - secret
+          naver:
+            - secret
+          google:
+            - secret
   h2:
     console:
       enabled: true
@@ -13,10 +24,13 @@ spring:
       ddl-auto: none
     properties:
       hibernate:
-        show_sql: true
+        # show_sql: true
         format_sql: true
 
 jwt:
+    - secret
+
+cloud:
     - secret
 
 logging:

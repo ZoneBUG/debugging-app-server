@@ -16,6 +16,9 @@ public class MainPostDTO {
     private Long postId;
 
     @NotNull
+    private String tag;
+
+    @NotNull
     private String title;
 
     @NotNull

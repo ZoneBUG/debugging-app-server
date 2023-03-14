@@ -52,9 +52,10 @@ public class CommunityService {
 
         for (Post post : findPosts) {
             Long postId = post.getId();
+            String postTag = post.getTag();
             String contents = post.getContents();
             Date createdAt = post.getCreatedAt();
-            MainPostDTO mainpostDTO = new MainPostDTO(postId, contents, createdAt);
+            MainPostDTO mainpostDTO = new MainPostDTO(postId, postTag, contents, createdAt);
             list.add(mainpostDTO);
         }
         return list;
@@ -160,6 +161,8 @@ public class CommunityService {
                 .title(writePost.getTitle())
                 .image(writePost.getImage())
                 .contents(writePost.getContents())
+                .hits(0L)
+                .createdAt(new Date())
                 .build();
 
         Post savedPost = postRepository.saveAndFlush(post);

@@ -22,7 +22,8 @@ public class CommunityController {
     private final CommunityService communityService;
 
     @GetMapping("/")
-    public ResponseEntity<MainPostResponseDTO> getMainPosts(UserDetails authUser) {
+    public ResponseEntity<MainPostResponseDTO> getMainPosts(
+            @AuthenticationPrincipal UserDetails authUser) {
         return ResponseEntity.ok(communityService.getMainPosts(authUser));
     }
 
@@ -52,7 +53,7 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.deletePost(authUser, postId));
     }
 
-    @GetMapping("/{tag}")
+    @GetMapping("/{tag}")//?tag=으로 수정할 것
     public ResponseEntity<SimplePostResponseDTO> getSimplePosts(
             @PathVariable String tag,
             @AuthenticationPrincipal UserDetails authUser,
@@ -60,14 +61,14 @@ public class CommunityController {
         return ResponseEntity.ok(communityService.getTagPosts(authUser, tag, pageNum));
     }
 
-    @GetMapping("/{postId}")
+    @GetMapping("/post/{postId}")
     public ResponseEntity<PostResponseDTO> readPost(
             @AuthenticationPrincipal UserDetails authUser,
-            @PathVariable Long postId) {
+            @PathVariable(name = "postId") Long postId) {
         return ResponseEntity.ok(communityService.readPost(authUser, postId));
     }
 
-    @GetMapping("/{keyword}")
+    @GetMapping("/search/{keyword}")
     public ResponseEntity<SimplePostResponseDTO> searchPost(
             @PathVariable String keyword,
             @RequestParam(name = "pageNum") Integer pageNum,

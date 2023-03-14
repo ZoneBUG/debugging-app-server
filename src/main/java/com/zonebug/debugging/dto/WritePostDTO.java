@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class WritePostDTO {
 
-    private User user;
     private String tag;
     private String title;
     private String image;

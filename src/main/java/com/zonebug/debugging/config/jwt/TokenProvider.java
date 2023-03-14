@@ -92,14 +92,11 @@ public class TokenProvider implements InitializingBean {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        System.out.println("96");
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-        System.out.println("101");
         User principal = new User(claims.getSubject(), "", authorities);
-        System.out.println("103");
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 

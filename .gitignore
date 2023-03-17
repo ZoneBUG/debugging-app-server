@@ -46,6 +46,3 @@ out/
 
 ### application ###
 application-secret.yml
-/gradle/wrapper/gradle-wrapper.jar
-/gradle/wrapper/gradle-wrapper.properties
-/gradlew.bat

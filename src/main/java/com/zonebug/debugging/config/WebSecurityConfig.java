@@ -1,10 +1,9 @@
 package com.zonebug.debugging.config;
 
 
-import com.zonebug.debugging.config.jwt.JwtAccessDeniedHandler;
-import com.zonebug.debugging.config.jwt.JwtAuthenticationEntryPoint;
-import com.zonebug.debugging.config.jwt.JwtSecurityConfig;
-import com.zonebug.debugging.config.jwt.TokenProvider;
+import com.zonebug.debugging.security.jwt.*;
+import com.zonebug.debugging.security.user.CustomUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,24 +12,18 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class WebSecurityConfig {
 
     private final TokenProvider tokenProvider;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final CustomUserDetailsService customUserDetailsService;
 
-    public WebSecurityConfig(
-            TokenProvider tokenProvider,
-            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
-            JwtAccessDeniedHandler jwtAccessDeniedHandler
-    ) {
-        this.tokenProvider = tokenProvider;
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
-    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -58,12 +51,17 @@ public class WebSecurityConfig {
                 .and()
                 .authorizeHttpRequests((req) ->
                         req
-                                .requestMatchers("/user/authenticate", "/user/signup").permitAll()
+                                .requestMatchers("/user/authenticate", "/user/signup", "/user/signin").permitAll()
                                 .requestMatchers("/oauth", "/oauth/kakao", "/oauth/callback/kakao", "/oauth/naver/**").permitAll()
                                 .requestMatchers("/source/url").permitAll()
                                 .anyRequest().authenticated()
                 )
+                .userDetailsService(customUserDetailsService)
+
+
+
                 .apply(new JwtSecurityConfig(tokenProvider));
+
 
         return http.build();
     }

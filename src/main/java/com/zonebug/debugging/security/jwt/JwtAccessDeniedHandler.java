@@ -1,4 +1,4 @@
-package com.zonebug.debugging.config.jwt;
+package com.zonebug.debugging.security.jwt;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

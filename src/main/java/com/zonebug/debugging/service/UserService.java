@@ -2,8 +2,17 @@ package com.zonebug.debugging.service;
 
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
+import com.zonebug.debugging.dto.LoginDto;
+import com.zonebug.debugging.dto.TokenDto;
 import com.zonebug.debugging.dto.UserDto;
-import com.zonebug.debugging.util.SecurityUtil;
+import com.zonebug.debugging.security.SecurityUtil;
+import com.zonebug.debugging.security.jwt.TokenProvider;
+import com.zonebug.debugging.security.user.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,18 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
     @Transactional
-    public User signup(UserDto userDto) {
+    public User signUp(UserDto userDto) {
         if(userRepository.findByEmail(userDto.getEmail()).orElse(null) != null) {
             throw new RuntimeException("이미 가입된 이메일입니다.");
         }
@@ -32,21 +39,25 @@ public class UserService {
                 .password(passwordEncoder.encode(userDto.getPassword()))
                 .nickname(userDto.getNickname())
                 .period(userDto.getPeriod())
-                .type(userDto.getType())
+                .type("default")
                 .build();
 
         return userRepository.save(user);
     }
 
+    public TokenDto signIn(LoginDto loginDto) {
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword());
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        System.out.println(authentication.getPrincipal());
 
-    @Transactional(readOnly = true)
-    public Optional<User> getUserWithEmail(String email) {
-        return SecurityUtil.getCurrentUsername().flatMap(userRepository::findByEmail);
+        TokenDto tokenDto = new TokenDto(tokenProvider.createAccessToken(authentication), tokenProvider.createRefreshToken(authentication));
+        return tokenDto;
     }
 
+
     @Transactional(readOnly = true)
-    public Optional<User> getMyUser() {
-        return SecurityUtil.getCurrentUsername().flatMap(userRepository::findByEmail);
+    public Optional<User> getCurrentUser() {
+        return SecurityUtil.getCurrentUser();
     }
 
 

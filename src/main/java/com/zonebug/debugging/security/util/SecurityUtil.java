@@ -1,10 +1,11 @@
-package com.zonebug.debugging.util;
+package com.zonebug.debugging.security;
 
+import com.zonebug.debugging.domain.user.User;
+import com.zonebug.debugging.security.user.CustomUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Optional;
 
@@ -14,7 +15,7 @@ public class SecurityUtil {
 
     private SecurityUtil() { }
 
-    public static Optional<String> getCurrentUsername() {
+    public static Optional<User> getCurrentUser() {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if(authentication == null) {
@@ -22,15 +23,13 @@ public class SecurityUtil {
             return Optional.empty();
         }
 
-        String email = null;
-        if(authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            email = userDetails.getUsername();
-        } else if(authentication.getPrincipal() instanceof String) {
-           email = (String) authentication.getPrincipal();
+        User currentUser = null;
+        if(authentication.getPrincipal() instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            currentUser = userDetails.getUser();
         }
 
-        return Optional.ofNullable(email);
+        return Optional.ofNullable(currentUser);
     }
 
 }

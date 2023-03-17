@@ -1,5 +1,7 @@
-package com.zonebug.debugging.config.jwt;
+package com.zonebug.debugging.security.jwt;
 
+import com.zonebug.debugging.security.user.CustomUserDetails;
+import com.zonebug.debugging.security.user.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class TokenProvider implements InitializingBean {
 
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
+    private final CustomUserDetailsService customUserDetailsService;
 
     private static final String AUTHORITIES_KEY = "auth";
     private final String secret;
@@ -32,9 +35,10 @@ public class TokenProvider implements InitializingBean {
     private Key key;
 
     public TokenProvider(
-            @Value("${jwt.secret}") String secret,
+            CustomUserDetailsService customUserDetailsService, @Value("${jwt.secret}") String secret,
             @Value("${jwt.accesstoken-validity-in-seconds}") long accessTokenValidityInMilliseconds,
             @Value("${jwt.refreshtoken-validity-in-seconds}") long refreshTokenValidityInMilliseconds) {
+        this.customUserDetailsService = customUserDetailsService;
         this.secret = secret;
         this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds * 1000;
         this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds;
@@ -92,18 +96,23 @@ public class TokenProvider implements InitializingBean {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+
         Collection<? extends GrantedAuthority> authorities =
                 Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
+
         User principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, token, authorities);
+
+        CustomUserDetails customUserDetails = (CustomUserDetails) customUserDetailsService.loadUserByUsername(principal.getUsername());
+        return new UsernamePasswordAuthenticationToken(customUserDetails, token, authorities);
     }
 
 
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            logger.info("JWT 유효성 확인 완료");
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             logger.info("잘못된 JWT 서명입니다.");

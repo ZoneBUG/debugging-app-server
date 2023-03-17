@@ -1,4 +1,4 @@
-package com.zonebug.debugging.config.jwt;
+package com.zonebug.debugging.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

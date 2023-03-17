@@ -1,4 +1,4 @@
-package com.zonebug.debugging.service;
+package com.zonebug.debugging.security.user;
 
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;

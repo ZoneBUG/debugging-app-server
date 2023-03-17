@@ -2,10 +2,11 @@ package com.zonebug.debugging.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zonebug.debugging.config.jwt.TokenProvider;
+import com.zonebug.debugging.security.jwt.TokenProvider;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
 import com.zonebug.debugging.dto.response.OAuthResponseDTO;
+import com.zonebug.debugging.security.user.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +24,6 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j

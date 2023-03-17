@@ -31,16 +31,12 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException(email + " -> DB에서 찾을 수 없음"));
     }
 
-    private org.springframework.security.core.userdetails.User createUser(String email, User user) {
+    private CustomUserDetails createUser(String email, User user) {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("USER"));
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(),
-                user.getPassword(),
-                authorities
-        );
+        return new CustomUserDetails(user);
     }
 
 }

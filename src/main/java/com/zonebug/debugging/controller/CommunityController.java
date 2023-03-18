@@ -1,10 +1,10 @@
 package com.zonebug.debugging.controller;
 
+import com.zonebug.debugging.dto.CommentDTO;
+import com.zonebug.debugging.dto.WriteCommentDTO;
 import com.zonebug.debugging.dto.WritePostDTO;
-import com.zonebug.debugging.dto.response.MainPostResponseDTO;
-import com.zonebug.debugging.dto.response.PostIdResponseDTO;
-import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
-import com.zonebug.debugging.dto.response.PostResponseDTO;
+import com.zonebug.debugging.dto.response.*;
+import com.zonebug.debugging.security.user.CustomUserDetails;
 import com.zonebug.debugging.service.CommunityService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,4 +75,32 @@ public class CommunityController {
             @AuthenticationPrincipal UserDetails authUser) {
         return ResponseEntity.ok(communityService.searchPosts(authUser, keyword, pageNum));
     }
+
+
+    @PostMapping("/comment")
+    public ResponseEntity<CommentIdResponseDTO> writeComment(
+            @RequestBody WriteCommentDTO writeCommentDTO,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.writeComment(customUserDetails.getUser(), writeCommentDTO));
+    }
+
+
+    @PutMapping("/comment/{commentId}")
+    @ResponseBody
+    public ResponseEntity<CommentIdResponseDTO> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody WriteCommentDTO writeCommentDTO,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.updateComment(customUserDetails.getUser(), commentId, writeCommentDTO));
+    }
+
+
+    @DeleteMapping("/comment/{commentId}")
+    public ResponseEntity<CommentIdResponseDTO> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.deleteComment(customUserDetails.getUser(), commentId));
+    }
+
+
 }

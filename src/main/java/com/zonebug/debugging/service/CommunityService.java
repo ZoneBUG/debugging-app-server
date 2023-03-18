@@ -8,7 +8,11 @@ import com.zonebug.debugging.domain.post.PostSpecification;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.domain.user.UserRepository;
 import com.zonebug.debugging.dto.*;
-import com.zonebug.debugging.dto.response.*;
+import com.zonebug.debugging.dto.response.MainPostResponseDTO;
+import com.zonebug.debugging.dto.response.PostIdResponseDTO;
+import com.zonebug.debugging.dto.response.PostResponseDTO;
+import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
+import com.zonebug.debugging.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,8 +20,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.client.HttpClientErrorException;
@@ -62,10 +64,9 @@ public class CommunityService {
     }
 
 
-    public MainPostResponseDTO getMainPosts(UserDetails authUser) {
+    public MainPostResponseDTO getMainPosts(CustomUserDetails authUser) {
 
-        User user = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+        User user = authUser.getUser();
 
         List<MainPostDTO> issueListDTO = tagClassify("issue");
         List<MainPostDTO> askListDTO = tagClassify("ask");
@@ -75,10 +76,9 @@ public class CommunityService {
     }
 
     public SimplePostResponseDTO getTagPosts(
-            UserDetails authUser, String tag, Integer pageNum
+            CustomUserDetails authUser, String tag, Integer pageNum
     ) {
-        User user = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+        User user = authUser.getUser();
 
         PageRequest pageRequest = PageRequest.of(pageNum, 10, Sort.by("createdAt").descending());
         Specification<Post> spec = (root, query, criteriaBuilder) -> null;
@@ -98,15 +98,14 @@ public class CommunityService {
         return new SimplePostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
     }
 
-    public PostResponseDTO readPost(UserDetails authUser, Long postId) {
+    public PostResponseDTO readPost(CustomUserDetails authUser, Long postId) {
 
 
         Post post = postRepository.findById(postId)
                 .orElseThrow();
         User postUser = userRepository.findByEmail(post.getUser().getEmail())
                 .orElseThrow();
-        User loginUser = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+        User loginUser = authUser.getUser();
 
         post.setHits(post.getHits() + 1);   // 조회수 증가
         Post savedPost = postRepository.saveAndFlush(post);
@@ -126,9 +125,9 @@ public class CommunityService {
         return new PostResponseDTO(postDTO, list);
     }
 
-    public SimplePostResponseDTO searchPosts(UserDetails authUser, String keyword, Integer pageNum) {
-        User user = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+    public SimplePostResponseDTO searchPosts(CustomUserDetails authUser, String keyword, Integer pageNum) {
+
+        User user = authUser.getUser();
 
         PageRequest pageRequest = PageRequest.of(pageNum, 10, Sort.by("createdAt").descending());
         Specification<Post> spec = (root, query, criteriaBuilder) -> null;
@@ -149,11 +148,9 @@ public class CommunityService {
         return new SimplePostResponseDTO(list, findPosts.getTotalPages(), findPosts.getTotalElements());
     }
 
-    public PostIdResponseDTO writePost(UserDetails authUser, WritePostDTO writePost) {
+    public PostIdResponseDTO writePost(CustomUserDetails authUser, WritePostDTO writePost) {
 
-
-        User findUser = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+        User findUser = authUser.getUser();
 
         Post post = Post.builder()
                 .user(findUser)
@@ -170,11 +167,9 @@ public class CommunityService {
         return new PostIdResponseDTO(savedPost);
     }
 
-    public PostIdResponseDTO updatePost(UserDetails authUser, Long postId, WritePostDTO writePost){
+    public PostIdResponseDTO updatePost(CustomUserDetails authUser, Long postId, WritePostDTO writePost){
 
-
-        User findUser = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+        User findUser = authUser.getUser();
         Post findPost = postRepository.findByIdAndUserId(postId, findUser.getId())
                 .orElseThrow();
 
@@ -184,9 +179,9 @@ public class CommunityService {
         return new PostIdResponseDTO(findPost);
     }
 
-    public PostIdResponseDTO deletePost(UserDetails authUser, Long postId) {
-        User findUser = userRepository.findByEmail(authUser.getUsername())
-                .orElseThrow();
+    public PostIdResponseDTO deletePost(CustomUserDetails authUser, Long postId) {
+
+        User findUser = authUser.getUser();
         Post findPost = postRepository.findByIdAndUserId(postId, findUser.getId())
                 .orElseThrow();
 

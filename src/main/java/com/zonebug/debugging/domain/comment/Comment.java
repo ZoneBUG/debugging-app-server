@@ -5,8 +5,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zonebug.debugging.domain.post.Post;
 import com.zonebug.debugging.domain.user.User;
+import com.zonebug.debugging.dto.WriteCommentDTO;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import java.util.Date;
 
@@ -17,6 +21,8 @@ import java.util.Date;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Where(clause = "deleted_at IS NULL")
+@SQLDelete(sql = "UPDATE comment SET deleted_at = CURRENT_TIMESTAMP where id = ?")
 public class Comment {
 
 
@@ -39,10 +45,8 @@ public class Comment {
     @Column(name = "contents", length = 500)
     private String contents;
 
-    @ManyToOne(fetch = FetchType.EAGER)  // ?
-    @JsonBackReference
-    @JoinColumn(name="parent_id", nullable = false)
-    private Comment parentComment;
+    @JoinColumn(name="parent_id")
+    private Long parentId;
 
     @Column(name = "created_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss", timezone = "Asia/Seoul")
@@ -55,4 +59,10 @@ public class Comment {
     @Column(name = "deleted_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd hh:mm:ss", timezone = "Asia/Seoul")
     private Date deletedAt;
+
+
+    public void update(WriteCommentDTO writeCommentDTO) {
+        this.contents = writeCommentDTO.getContents();
+        this.updatedAt = new Date();
+    }
 }

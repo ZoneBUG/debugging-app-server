@@ -1,5 +1,7 @@
 package com.zonebug.debugging.controller;
 
+import com.zonebug.debugging.dto.CommentDTO;
+import com.zonebug.debugging.dto.WriteCommentDTO;
 import com.zonebug.debugging.dto.WritePostDTO;
 import com.zonebug.debugging.dto.response.MainPostResponseDTO;
 import com.zonebug.debugging.dto.response.PostIdResponseDTO;
@@ -75,4 +77,32 @@ public class CommunityController {
             @AuthenticationPrincipal CustomUserDetails authUser) {
         return ResponseEntity.ok(communityService.searchPosts(authUser, keyword, pageNum));
     }
+
+
+    @PostMapping("/comment")
+    public ResponseEntity<CommentIdResponseDTO> writeComment(
+            @RequestBody WriteCommentDTO writeCommentDTO,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.writeComment(customUserDetails.getUser(), writeCommentDTO));
+    }
+
+
+    @PutMapping("/comment/{commentId}")
+    @ResponseBody
+    public ResponseEntity<CommentIdResponseDTO> updateComment(
+            @PathVariable Long commentId,
+            @RequestBody WriteCommentDTO writeCommentDTO,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.updateComment(customUserDetails.getUser(), commentId, writeCommentDTO));
+    }
+
+
+    @DeleteMapping("/comment/{commentId}")
+    public ResponseEntity<CommentIdResponseDTO> deleteComment(
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(communityService.deleteComment(customUserDetails.getUser(), commentId));
+    }
+
+
 }

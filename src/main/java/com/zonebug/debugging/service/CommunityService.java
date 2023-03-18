@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -114,7 +116,7 @@ public class CommunityService {
         List<CommentDTO> list = new ArrayList<>();
         for (Comment c : findComments) {
             Long commentId = c.getId();
-            Long parentId = c.getParentComment().getId();
+            Long parentId = c.getParentId();
             String nickname = c.getUser().getNickname();
             String contents = c.getContents();
             CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser() == loginUser);
@@ -186,5 +188,65 @@ public class CommunityService {
         postRepository.deleteById(findPost.getId());
 
         return new PostIdResponseDTO(findPost);
+    }
+
+
+    public CommentIdResponseDTO writeComment(User user, WriteCommentDTO writeCommentDTO) {
+        Long postId = writeCommentDTO.getPostId();
+        Post post = postRepository.findById(postId).orElseThrow();
+        Comment comment;
+
+        if(writeCommentDTO.getParentId() == 0) {
+            comment = Comment.builder()
+                    .post(post)
+                    .user(user)
+                    .contents(writeCommentDTO.getContents())
+                    .parentId(0L)
+                    .createdAt(new Date())
+                    .build();
+        } else {
+            comment = Comment.builder()
+                    .post(post)
+                    .user(user)
+                    .contents(writeCommentDTO.getContents())
+                    .parentId(writeCommentDTO.getParentId())
+                    .createdAt(new Date())
+                    .build();
+        }
+
+        Comment savedComment = commentRepository.saveAndFlush(comment);
+        return new CommentIdResponseDTO(savedComment);
+    }
+
+
+    public CommentIdResponseDTO updateComment(User user, Long commentId, WriteCommentDTO writeCommentDTO) {
+        Comment currentComment = commentRepository.findById(commentId).orElseThrow();
+
+        if(checkWriter(user, currentComment.getUser())) {
+            currentComment.update(writeCommentDTO);
+            commentRepository.save(currentComment);
+            return new CommentIdResponseDTO(currentComment);
+        } else {
+            throw new RuntimeException("작성자가 아닙니다.");
+        }
+
+    }
+
+
+    public CommentIdResponseDTO deleteComment(User user, Long commentId) {
+        Comment currentComment = commentRepository.findById(commentId).orElseThrow();
+
+        if(checkWriter(user, currentComment.getUser())) {
+            commentRepository.deleteById(commentId);
+            return new CommentIdResponseDTO(commentId);
+        } else {
+            throw new RuntimeException("작성자가 아닙니다.");
+        }
+
+    }
+
+    private boolean checkWriter(User currentUser, User writer) {
+        if(currentUser.getId() == writer.getId()) return true;
+        return false;
     }
 }

@@ -1,12 +1,8 @@
 package com.zonebug.debugging.controller;
 
-import com.zonebug.debugging.dto.CommentDTO;
 import com.zonebug.debugging.dto.WriteCommentDTO;
 import com.zonebug.debugging.dto.WritePostDTO;
-import com.zonebug.debugging.dto.response.MainPostResponseDTO;
-import com.zonebug.debugging.dto.response.PostIdResponseDTO;
-import com.zonebug.debugging.dto.response.SimplePostResponseDTO;
-import com.zonebug.debugging.dto.response.PostResponseDTO;
+import com.zonebug.debugging.dto.response.*;
 import com.zonebug.debugging.security.user.CustomUserDetails;
 import com.zonebug.debugging.service.CommunityService;
 import lombok.RequiredArgsConstructor;

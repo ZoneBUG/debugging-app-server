@@ -24,6 +24,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -63,7 +64,7 @@ public class OAuthService {
     public OAuthResponseDTO signUp(String code, String type) {
         TYPE = type;
 
-        if(type == "kakao") {
+        if(Objects.equals(type, "kakao")) {
             CLIENT_ID = KAKAO_CLIENT_ID;
             REDIRECT_URI = KAKAO_REDIRECT_URI;
         } else {

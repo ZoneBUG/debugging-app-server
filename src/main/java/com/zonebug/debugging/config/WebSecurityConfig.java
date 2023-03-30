@@ -62,7 +62,7 @@ public class WebSecurityConfig {
                 .and()
                 .authorizeHttpRequests((req) ->
                         req
-                                .requestMatchers("/user/authenticate", "/user/signup", "/user/signin").permitAll()
+                                .requestMatchers("/user/authenticate", "/user/signup", "/user/signin", "/user/test/**").permitAll()
                                 .requestMatchers("/oauth", "/oauth/kakao", "/oauth/callback/kakao", "/oauth/naver/**").permitAll()
                                 .requestMatchers("/source/url").permitAll()
                                 .anyRequest().authenticated()

@@ -1,6 +1,5 @@
 package com.zonebug.debugging.controller;
 
-import com.zonebug.debugging.dto.CommentDTO;
 import com.zonebug.debugging.dto.WriteCommentDTO;
 import com.zonebug.debugging.dto.WritePostDTO;
 import com.zonebug.debugging.dto.response.*;
@@ -10,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -23,13 +21,13 @@ public class CommunityController {
 
     @GetMapping("/")
     public ResponseEntity<MainPostResponseDTO> getMainPosts(
-            @AuthenticationPrincipal UserDetails authUser) {
+            @AuthenticationPrincipal CustomUserDetails authUser) {
         return ResponseEntity.ok(communityService.getMainPosts(authUser));
     }
 
     @PostMapping("/post")
     public ResponseEntity<PostIdResponseDTO> writePost(
-            @AuthenticationPrincipal UserDetails authUser,
+            @AuthenticationPrincipal CustomUserDetails authUser,
             @RequestBody WritePostDTO writePost) {
         return ResponseEntity.ok(communityService.writePost(authUser, writePost));
     }
@@ -37,8 +35,8 @@ public class CommunityController {
     @PutMapping("/post/{postId}")
     @ResponseBody
     public ResponseEntity<PostIdResponseDTO> updatePost(
-            @AuthenticationPrincipal UserDetails authUser,
-            @PathVariable Long postId,
+            @AuthenticationPrincipal CustomUserDetails authUser,
+            @PathVariable(name = "postId") Long postId,
             @RequestBody WritePostDTO writePost
     ) {
         return ResponseEntity.ok(communityService.updatePost(authUser, postId, writePost));
@@ -47,32 +45,32 @@ public class CommunityController {
     @DeleteMapping("/post/{postId}")
     @ResponseBody
     public ResponseEntity<PostIdResponseDTO> deletePost(
-            @AuthenticationPrincipal UserDetails authUser,
-            @PathVariable Long postId
+            @AuthenticationPrincipal CustomUserDetails authUser,
+            @PathVariable(name = "postId") Long postId
     ) {
         return ResponseEntity.ok(communityService.deletePost(authUser, postId));
     }
 
-    @GetMapping("/{tag}")//?tag=으로 수정할 것
+    @GetMapping("/tag/{tag}")
     public ResponseEntity<SimplePostResponseDTO> getSimplePosts(
-            @PathVariable String tag,
-            @AuthenticationPrincipal UserDetails authUser,
-            Integer pageNum) {
+            @PathVariable(name = "tag") String tag,
+            @AuthenticationPrincipal CustomUserDetails authUser,
+            @RequestParam(name = "pageNum") Integer pageNum) {
         return ResponseEntity.ok(communityService.getTagPosts(authUser, tag, pageNum));
     }
 
     @GetMapping("/post/{postId}")
     public ResponseEntity<PostResponseDTO> readPost(
-            @AuthenticationPrincipal UserDetails authUser,
+            @AuthenticationPrincipal CustomUserDetails authUser,
             @PathVariable(name = "postId") Long postId) {
         return ResponseEntity.ok(communityService.readPost(authUser, postId));
     }
 
-    @GetMapping("/search/{keyword}")
+    @GetMapping("/keyword/{keyword}")
     public ResponseEntity<SimplePostResponseDTO> searchPost(
             @PathVariable String keyword,
             @RequestParam(name = "pageNum") Integer pageNum,
-            @AuthenticationPrincipal UserDetails authUser) {
+            @AuthenticationPrincipal CustomUserDetails authUser) {
         return ResponseEntity.ok(communityService.searchPosts(authUser, keyword, pageNum));
     }
 

@@ -116,12 +116,14 @@ public class CommunityService {
         List<Comment> findComments = commentRepository.findAll();
         List<CommentDTO> list = new ArrayList<>();
         for (Comment c : findComments) {
-            Long commentId = c.getId();
-            Long parentId = c.getParentId();
-            String nickname = c.getUser().getNickname();
-            String contents = c.getContents();
-            CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser() == loginUser);
-            list.add(commentDTO);
+            if(c.getPost().getId() == postId) {
+                Long commentId = c.getId();
+                Long parentId = c.getParentId();
+                String nickname = c.getUser().getNickname();
+                String contents = c.getContents();
+                CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser() == loginUser);
+                list.add(commentDTO);
+            }
         }
         return new PostResponseDTO(postDTO, list);
     }

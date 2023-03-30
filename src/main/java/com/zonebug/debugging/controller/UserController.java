@@ -36,6 +36,11 @@ public class UserController {
         return ResponseEntity.ok(principalDetails.getUser());
     }
 
+    @GetMapping("/test/{email}")
+    public ResponseEntity<TokenDto> test(@PathVariable String email) {
+        return ResponseEntity.ok(new TokenDto("acc", "res"));
+    }
+
 
     @PostMapping("/signup")
     public ResponseEntity<User> signUp(@Valid @RequestBody UserDto userDto) {

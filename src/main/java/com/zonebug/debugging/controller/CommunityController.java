@@ -4,7 +4,8 @@ import com.zonebug.debugging.dto.WriteCommentDTO;
 import com.zonebug.debugging.dto.WritePostDTO;
 import com.zonebug.debugging.dto.response.*;
 import com.zonebug.debugging.security.user.CustomUserDetails;
-import com.zonebug.debugging.service.CommunityService;
+import com.zonebug.debugging.service.CommentService;
+import com.zonebug.debugging.service.PostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +18,20 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CommunityController {
 
-    private final CommunityService communityService;
+    private final PostService postService;
+    private final CommentService commentService;
 
     @GetMapping("/")
     public ResponseEntity<MainPostResponseDTO> getMainPosts(
             @AuthenticationPrincipal CustomUserDetails authUser) {
-        return ResponseEntity.ok(communityService.getMainPosts(authUser));
+        return ResponseEntity.ok(postService.getMainPosts(authUser));
     }
 
     @PostMapping("/post")
     public ResponseEntity<PostIdResponseDTO> writePost(
             @AuthenticationPrincipal CustomUserDetails authUser,
             @RequestBody WritePostDTO writePost) {
-        return ResponseEntity.ok(communityService.writePost(authUser, writePost));
+        return ResponseEntity.ok(postService.writePost(authUser, writePost));
     }
 
     @PutMapping("/post/{postId}")
@@ -39,7 +41,7 @@ public class CommunityController {
             @PathVariable(name = "postId") Long postId,
             @RequestBody WritePostDTO writePost
     ) {
-        return ResponseEntity.ok(communityService.updatePost(authUser, postId, writePost));
+        return ResponseEntity.ok(postService.updatePost(authUser, postId, writePost));
     }
 
     @DeleteMapping("/post/{postId}")
@@ -48,7 +50,7 @@ public class CommunityController {
             @AuthenticationPrincipal CustomUserDetails authUser,
             @PathVariable(name = "postId") Long postId
     ) {
-        return ResponseEntity.ok(communityService.deletePost(authUser, postId));
+        return ResponseEntity.ok(postService.deletePost(authUser, postId));
     }
 
     @GetMapping("/tag/{tag}")
@@ -56,14 +58,14 @@ public class CommunityController {
             @PathVariable(name = "tag") String tag,
             @AuthenticationPrincipal CustomUserDetails authUser,
             @RequestParam(name = "pageNum") Integer pageNum) {
-        return ResponseEntity.ok(communityService.getTagPosts(authUser, tag, pageNum));
+        return ResponseEntity.ok(postService.getTagPosts(authUser, tag, pageNum));
     }
 
     @GetMapping("/post/{postId}")
     public ResponseEntity<PostResponseDTO> readPost(
             @AuthenticationPrincipal CustomUserDetails authUser,
             @PathVariable(name = "postId") Long postId) {
-        return ResponseEntity.ok(communityService.readPost(authUser, postId));
+        return ResponseEntity.ok(postService.readPost(authUser, postId));
     }
 
     @GetMapping("/keyword/{keyword}")
@@ -71,7 +73,7 @@ public class CommunityController {
             @PathVariable String keyword,
             @RequestParam(name = "pageNum") Integer pageNum,
             @AuthenticationPrincipal CustomUserDetails authUser) {
-        return ResponseEntity.ok(communityService.searchPosts(authUser, keyword, pageNum));
+        return ResponseEntity.ok(postService.searchPosts(authUser, keyword, pageNum));
     }
 
 
@@ -79,7 +81,7 @@ public class CommunityController {
     public ResponseEntity<CommentIdResponseDTO> writeComment(
             @RequestBody WriteCommentDTO writeCommentDTO,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return ResponseEntity.ok(communityService.writeComment(customUserDetails.getUser(), writeCommentDTO));
+        return ResponseEntity.ok(commentService.writeComment(customUserDetails.getUser(), writeCommentDTO));
     }
 
 
@@ -89,7 +91,7 @@ public class CommunityController {
             @PathVariable Long commentId,
             @RequestBody WriteCommentDTO writeCommentDTO,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return ResponseEntity.ok(communityService.updateComment(customUserDetails.getUser(), commentId, writeCommentDTO));
+        return ResponseEntity.ok(commentService.updateComment(customUserDetails.getUser(), commentId, writeCommentDTO));
     }
 
 
@@ -97,7 +99,7 @@ public class CommunityController {
     public ResponseEntity<CommentIdResponseDTO> deleteComment(
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return ResponseEntity.ok(communityService.deleteComment(customUserDetails.getUser(), commentId));
+        return ResponseEntity.ok(commentService.deleteComment(customUserDetails.getUser(), commentId));
     }
 
 

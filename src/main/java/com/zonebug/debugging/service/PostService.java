@@ -37,6 +37,7 @@ public class PostService {
         Specification<Post> spec = (root, query, criteriaBuilder) -> null;
         Pageable limit;
         if (Objects.equals(tag, "issue")) {
+            System.out.println("in issue!");
             spec = spec.and(PostSpecification.findHot());
             limit = PageRequest.of(0, 3, Sort.by("hits").descending());
         } else {
@@ -75,11 +76,19 @@ public class PostService {
     ) {
         User user = authUser.getUser();
 
-        PageRequest pageRequest = PageRequest.of(pageNum, 10, Sort.by("createdAt").descending());
         Specification<Post> spec = (root, query, criteriaBuilder) -> null;
-        spec = spec.and(PostSpecification.equalTag(tag));
+        Pageable limit;
 
-        Page<Post> findPosts = postRepository.findAll(spec, pageRequest);
+        if (Objects.equals(tag, "issue")) {
+            System.out.println("in issue!");
+            spec = spec.and(PostSpecification.findHot());
+            limit = PageRequest.of(0, 10, Sort.by("hits").descending());
+        } else {
+            spec = spec.and(PostSpecification.equalTag(tag));
+            limit = PageRequest.of(0, 10, Sort.by("createdAt").descending());
+        }
+
+        Page<Post> findPosts = postRepository.findAll(spec, limit);
 
         List<SimplePostDTO> list = new ArrayList<>();
         for (Post post : findPosts) {
@@ -105,7 +114,7 @@ public class PostService {
         post.setHits(post.getHits() + 1);   // 조회수 증가
         Post savedPost = postRepository.saveAndFlush(post);
 
-        PostDTO postDTO = new PostDTO(post.getId(), post.getUser().getNickname(), post.getTitle(), post.getImage(), post.getContents(), post.getCreatedAt(), post.getUpdatedAt(), postUser == loginUser, savedPost.getHits());
+        PostDTO postDTO = new PostDTO(post.getId(), post.getUser().getNickname(), post.getTitle(), post.getImage(), post.getContents(), post.getCreatedAt(), post.getUpdatedAt(), postUser.getId() == loginUser.getId(), savedPost.getHits());
 
         List<Comment> findComments = commentRepository.findAll();
         List<CommentDTO> list = new ArrayList<>();
@@ -115,7 +124,7 @@ public class PostService {
                 Long parentId = c.getParentId();
                 String nickname = c.getUser().getNickname();
                 String contents = c.getContents();
-                CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser() == loginUser);
+                CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser().getId() == loginUser.getId());
                 list.add(commentDTO);
             }
         }

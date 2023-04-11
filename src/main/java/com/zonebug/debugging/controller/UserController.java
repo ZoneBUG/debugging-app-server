@@ -1,6 +1,7 @@
 package com.zonebug.debugging.controller;
 
 import com.zonebug.debugging.domain.user.User;
+import com.zonebug.debugging.dto.InfoUpdateDTO;
 import com.zonebug.debugging.dto.LoginDto;
 import com.zonebug.debugging.dto.TokenDto;
 import com.zonebug.debugging.dto.UserDto;
@@ -31,17 +32,6 @@ public class UserController {
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
 
 
-    @GetMapping("")
-    public ResponseEntity<User> userOk(@AuthenticationPrincipal CustomUserDetails principalDetails) {
-        return ResponseEntity.ok(principalDetails.getUser());
-    }
-
-    @GetMapping("/test/{email}")
-    public ResponseEntity<TokenDto> test(@PathVariable String email) {
-        return ResponseEntity.ok(new TokenDto("acc", "res"));
-    }
-
-
     @PostMapping("/signup")
     public ResponseEntity<User> signUp(@Valid @RequestBody UserDto userDto) {
         return ResponseEntity.ok(userService.signUp(userDto));
@@ -65,16 +55,12 @@ public class UserController {
         return new ResponseEntity(new TokenDto(accessToken, refreshToken), HttpStatus.OK);
     }
 
+
+    // Authentication 회원 정보
     @GetMapping("/info")
     public ResponseEntity<Optional<User>> info() {
         return ResponseEntity.ok(userService.getCurrentUser());
     }
 
-    // Authentication 회원 정보
-    @GetMapping("/info2")
-    public ResponseEntity<User> user(@AuthenticationPrincipal CustomUserDetails principalDetails) {
-        User user = principalDetails.getUser();
 
-        return ResponseEntity.ok(principalDetails.getUser());
-    }
 }

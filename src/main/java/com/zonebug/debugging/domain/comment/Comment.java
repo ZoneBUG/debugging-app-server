@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zonebug.debugging.domain.post.Post;
 import com.zonebug.debugging.domain.user.User;
 import com.zonebug.debugging.dto.WriteCommentDTO;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
@@ -15,7 +14,7 @@ import org.hibernate.annotations.Where;
 import java.util.Date;
 
 @Entity
-@Table(name = "Comment")
+@Table(name = "comment")
 @Getter
 @Setter
 @Builder

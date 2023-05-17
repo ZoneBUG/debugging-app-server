@@ -12,6 +12,7 @@ import com.zonebug.debugging.domain.user.UserRepository;
 import com.zonebug.debugging.dto.CheckListDTO;
 import com.zonebug.debugging.dto.DrugListDTO;
 import com.zonebug.debugging.dto.ReportImageDTO;
+import com.zonebug.debugging.dto.ReportItemDTO;
 import com.zonebug.debugging.dto.response.ReportResponseDTO;
 import com.zonebug.debugging.security.user.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -42,8 +43,7 @@ public class ReportService {
         spec = spec.and(ScenarioSpecification.findScenario(period, user));
         List<Scenario> scenarioList = scenarioRepository.findAll(spec);
 
-        List<ReportImageDTO> reportImageDTO = new ArrayList<>();
-        List<Bug> bugList = new ArrayList<>();
+        List<ReportItemDTO> reportItemDTOList = new ArrayList<>();
 
         for(Scenario s : scenarioList){
             String image = s.getImage();
@@ -51,27 +51,18 @@ public class ReportService {
             String bugName = bug.getSpecies();
             Date date = s.getCreatedAt();
             ReportImageDTO data = new ReportImageDTO(image, bugName, date);
-            bugList.add(bug);
-            reportImageDTO.add(data);
-        }
-
-        List<CheckListDTO> checkListDTO = new ArrayList<>();
-        List<DrugListDTO> drugListDTO = new ArrayList<>();
-
-        for(Bug bug : bugList){
-            String bugName = bug.getSpecies();
-
-            System.out.println(checkListRepository.findContentsByBug(bug));
 
             List<String> checkListContents = checkListRepository.findContentsByBug(bug);
             CheckListDTO checkListData = new CheckListDTO(bugName, checkListContents);
-            checkListDTO.add(checkListData);
 
             List<Drug> drugListContents = drugRepository.findByBug(bug);
             DrugListDTO drugListData = new DrugListDTO(bugName, drugListContents);
-            drugListDTO.add(drugListData);
+
+            ReportItemDTO reportItem = new ReportItemDTO(data, checkListData, drugListData);
+            reportItemDTOList.add(reportItem);
         }
 
-        return new ReportResponseDTO(reportImageDTO, checkListDTO, drugListDTO);
+
+        return new ReportResponseDTO(reportItemDTOList);
     }
 }

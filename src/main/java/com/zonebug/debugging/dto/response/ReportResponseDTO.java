@@ -3,6 +3,7 @@ package com.zonebug.debugging.dto.response;
 import com.zonebug.debugging.dto.CheckListDTO;
 import com.zonebug.debugging.dto.DrugListDTO;
 import com.zonebug.debugging.dto.ReportImageDTO;
+import com.zonebug.debugging.dto.ReportItemDTO;
 import lombok.*;
 
 import java.util.List;
@@ -14,11 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ReportResponseDTO {
 
-
-    private List<ReportImageDTO> reportImageDTO;
-
-    private List<CheckListDTO> checkListDTO;
-
-    private List<DrugListDTO> drugListDTO;
+    private List<ReportItemDTO> reportItemDTO;
 
 }

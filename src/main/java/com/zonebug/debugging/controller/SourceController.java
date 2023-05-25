@@ -13,7 +13,7 @@ public class SourceController {
 
     private final SourceService sourceService;
 
-    @GetMapping("/url")
+    @GetMapping("url")
     @ResponseBody
     public ResponseEntity<GetPathResponseDTO> createURL(
             @RequestParam(name = "userId") Long userId

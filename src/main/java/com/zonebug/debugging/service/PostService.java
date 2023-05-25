@@ -124,7 +124,8 @@ public class PostService {
                 Long parentId = c.getParentId();
                 String nickname = c.getUser().getNickname();
                 String contents = c.getContents();
-                CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser().getId() == loginUser.getId());
+                Date createdAt = new Date();
+                CommentDTO commentDTO = new CommentDTO(commentId, parentId, nickname, contents, c.getUser().getId() == loginUser.getId(), createdAt);
                 list.add(commentDTO);
             }
         }

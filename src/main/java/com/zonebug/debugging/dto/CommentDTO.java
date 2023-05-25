@@ -3,6 +3,8 @@ package com.zonebug.debugging.dto;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.util.Date;
+
 @Getter
 @Setter
 @Builder
@@ -24,4 +26,7 @@ public class CommentDTO {
 
     @NotNull
     private Boolean isMine;
+
+    @NotNull
+    private Date createdAt;
 }

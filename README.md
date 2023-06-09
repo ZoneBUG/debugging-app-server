@@ -1,5 +1,5 @@
 
-<img src="https://github.com/ZoneBUG/debugging-app-server/assets/97878992/aa834361-bab4-4acf-a93f-80e4192fb268" width=100%>
+<img src="https://github.com/ZoneBUG/debugging-app-server/assets/97878992/909a448d-7314-442c-8cd6-332a7cdb5e86" width=100%>
 
 # [DEBUGGING] <img src="https://github.com/ZoneBUG/debugging-app-server/assets/97878992/67ec499f-7947-4499-a65a-dff9d81b8036" align=left width=100>
 

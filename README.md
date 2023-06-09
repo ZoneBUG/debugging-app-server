@@ -8,6 +8,19 @@
 <br>
 
 ## Main Feature
+#### (1) 회원가입 및 로그인
+- Spring Security를 이용한 JWT 인증, 인가 처리 
+
+#### (2) 우리 가게 보고서
+- 원하는 주기의 매장 보고서 생성 기능
+- 해충 이동 경로 이미지, 해충명, 해충 특징, 방역 체크리스트, 추천 약품 제공
+
+#### (3) 이 벌레 뭐지?
+- 사진 첨부 후, 해충을 검색하는 기능
+
+#### (4) Zone-Talk
+- '오늘의 Issue', '궁금해요', '공유해요' 게시판 기능
+- 댓글 및 대댓글 기능
 
 ## Skills
 <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white"> <img src="https://img.shields.io/badge/spring%20boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white"> <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white"> <img src="https://img.shields.io/badge/gradle-02303A?style=for-the-badge&logo=gradle&logoColor=white">
